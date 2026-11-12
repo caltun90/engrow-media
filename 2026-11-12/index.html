@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engrow 12.11.2026</title>
+<style>
+:root{--bg:#1c1742;--card:#2b2560;--fg:#fff;--dim:#b9b3dd;--accent:#ffd45e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 -apple-system,system-ui,sans-serif;padding:20px 16px 40px}
+h1{font-size:24px;margin:0 0 20px}
+section{background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px}
+h2{font-size:18px;margin:0 0 12px}
+.row{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
+.row img{height:150px;border-radius:8px;flex:none}
+button{width:100%;padding:16px;border:0;border-radius:12px;background:var(--accent);color:#1c1742;font:700 17px -apple-system,system-ui,sans-serif}
+button:disabled{opacity:.5}
+p{margin:10px 0 0;color:var(--dim);font-size:14px}
+</style></head><body>
+<h1>12.11.2026 fotoğrafları</h1>
+<section><h2>Gündem</h2><div class="row"><img src="gundem_01.jpg" alt="Gündem 1"><img src="gundem_02.jpg" alt="Gündem 2"><img src="gundem_03.jpg" alt="Gündem 3"><img src="gundem_04.jpg" alt="Gündem 4"><img src="gundem_05.jpg" alt="Gündem 5"><img src="gundem_06.jpg" alt="Gündem 6"><img src="gundem_07.jpg" alt="Gündem 7"></div><button id="b0">7 görseli film rulosuna kaydet</button><p id="n0"></p></section>
+<section><h2>Hata listesi</h2><div class="row"><img src="tt_01.jpg" alt="Hata listesi 1"><img src="tt_02.jpg" alt="Hata listesi 2"><img src="tt_03.jpg" alt="Hata listesi 3"><img src="tt_04.jpg" alt="Hata listesi 4"><img src="tt_05.jpg" alt="Hata listesi 5"><img src="tt_06.jpg" alt="Hata listesi 6"><img src="tt_07.jpg" alt="Hata listesi 7"></div><button id="b1">7 görseli film rulosuna kaydet</button><p id="n1"></p></section>
+<script>
+const SETS = [["gundem_01.jpg", "gundem_02.jpg", "gundem_03.jpg", "gundem_04.jpg", "gundem_05.jpg", "gundem_06.jpg", "gundem_07.jpg"], ["tt_01.jpg", "tt_02.jpg", "tt_03.jpg", "tt_04.jpg", "tt_05.jpg", "tt_06.jpg", "tt_07.jpg"]];
+SETS.forEach((names, i) => {
+  const btn = document.getElementById('b' + i), note = document.getElementById('n' + i);
+  const label = btn.textContent;
+  let files = null;
+  btn.disabled = true;
+  btn.textContent = 'Hazırlanıyor...';
+  // Files are loaded up front: Safari drops the tap if share() waits on a download.
+  Promise.all(names.map(async n => {
+    const r = await fetch(n);
+    if (!r.ok) throw new Error(n);
+    return new File([await r.blob()], n, {type: 'image/jpeg'});
+  })).then(f => {
+    files = f;
+    if (navigator.canShare && navigator.canShare({files})) {
+      btn.disabled = false;
+      btn.textContent = label;
+    } else {
+      btn.textContent = 'Bu tarayıcı desteklemiyor';
+      note.textContent = 'Safari ile aç. Olmazsa fotoğrafa basılı tutup kaydet.';
+    }
+  }).catch(() => {
+    btn.textContent = 'Fotoğraflar yüklenemedi';
+    note.textContent = 'Sayfayı yenile.';
+  });
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.share({files});
+      note.textContent = '';
+    } catch (e) {
+      if (e.name !== 'AbortError') note.textContent = 'Paylaşım açılmadı: ' + e.message;
+    }
+  });
+});
+</script></body></html>
